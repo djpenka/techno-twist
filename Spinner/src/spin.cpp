@@ -65,7 +65,7 @@ char YIN[] = {46, 42, 38, 34, 30};
 //CapacitiveSensor r3 = CapacitiveSensor(OUT[2], RIN[2]); 
 //CapacitiveSensor r4 = CapacitiveSensor(OUT[3], RIN[3]); 
 //CapacitiveSensor r5 = CapacitiveSensor(OUT[4], RIN[4]); 
-//guvbhuvtyudrtdbctr
+//
 //CapacitiveSensor g1 = CapacitiveSensor(OUT[0], GIN[0]);
 //CapacitiveSensor g2 = CapacitiveSensor(OUT[1], GIN[1]);
 //CapacitiveSensor g3 = CapacitiveSensor(OUT[2], GIN[2]);
