@@ -21,7 +21,7 @@ int yArray[50];
 char xSize = 0;
 
 /*
- * RED, BLUE, GREEN, YELLOW
+ * RED, BLUE, GREEN, YELLOW.
  */
 int cRF = -1;
 int cLF = -1;
