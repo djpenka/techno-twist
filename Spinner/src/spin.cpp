@@ -53,12 +53,12 @@ const float START_THETA = 0;
 const float THETA_ACC = -1 * PI / 64;
 
 // Sensors
-char OUT[] = {52, 53, 50, 51, 22};
+char OUT[] = {52, 53, 50, 51, 6}; // 22 -> 6 52 -> 23
 char RIN[] = {49, 45, 41, 37, 33};
 char GIN[] = {48, 44, 40, 36, 32};
 char BBIN[] = {47, 43, 39, 35, 31};
 char YIN[] = {46, 42, 38, 34, 30};
-
+int threshold = 200;
 
 
 CapacitiveSensor r1 = CapacitiveSensor(OUT[0], RIN[0]); 
@@ -91,7 +91,7 @@ Plotter p;
 
 
 //DEBUG
-char diagnostics = 0;
+char debugMode = 1;
 
 // Declaring Functions
 
@@ -103,34 +103,36 @@ int getBackgroundPixel(int i, int j, char inCircle);
 void addMaybe(int x, int y);
 void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
 void sensorOut(char loopForever);
+void isActiveDebug();
 
 void setup() {
-  // p.Begin();
-  // p.AddTimeGraph("Test", 100, 
-  //                "R1", values[0], 
-  //                "R2", values[1], 
-  //                "R3", values[2],
-  //                "R4", values[3],
-  //                "G1", values[5],
-  //                "G2", values[6],
-  //                "G3", values[7],
-  //                "G4", values[8], 
-  //                "B1", values[10],
-  //                "B2", values[11],
-  //                "B3", values[12],
-  //                "B4", values[13], 
-  //                "Y1", values[15],
-  //                "Y2", values[16],
-  //                "Y3", values[17],
-  //                "Y4", values[18]);
-//  setPins();
-//  if (diagnostics) {
-//    sensorOut(1);
-//  }
   matrix.begin();
   matrix.setTextColor(WHITE);
-  sensorOut(0);
-  // matrix.drawCircle(32, 32, 5, RED);
+  if (debugMode) {
+    p.Begin();
+    p.AddTimeGraph("Test", 100, 
+    //                "R1", values[0], 
+    //                "R2", values[1], 
+    //                "R3", values[2],
+                  //  "R4", values[3],
+                      "R5", values[4],
+    //                "G1", values[5],
+    //                "G2", values[6],
+    //                "G3", values[7],
+                  //  "G4", values[8], 
+                      "G5", values[9],
+    //                "B1", values[10],
+    //                "B2", values[11],
+    //                "B3", values[12],
+                  //  "B4", values[13], 
+                      "B5", values[14],
+                  //  "Y1", values[15],
+                  //  "Y2", values[16],
+                  //  "Y3", values[17],
+                  //  "Y4", values[18],
+                      "Y5", values[19]);
+    sensorOut(1);
+  }
   redrawAll();
   delay(1000);
 }
@@ -171,29 +173,61 @@ void sensorOut(char loopForever) {
       values[1] = r2.capacitiveSensor(30);
       values[2] = r3.capacitiveSensor(30);
       values[3] = r4.capacitiveSensor(30);
-      // values[4] = r5.capacitiveSensor(30);
+      values[4] = r5.capacitiveSensor(30);
 
       values[5] = g1.capacitiveSensor(30);
       values[6] = g2.capacitiveSensor(30);
       values[7] = g3.capacitiveSensor(30);
       values[8] = g4.capacitiveSensor(30);
-      // values[9] = g5.capacitiveSensor(30);
+      values[9] = g5.capacitiveSensor(30);
 
       values[10] = b1.capacitiveSensor(30);
       values[11] = b2.capacitiveSensor(30);
       values[12] = b3.capacitiveSensor(30);
       values[13] = b4.capacitiveSensor(30);
-      // values[14] = b5.capacitiveSensor(30);
+      values[14] = b5.capacitiveSensor(30);
 
       values[15] = y1.capacitiveSensor(30);
       values[16] = y2.capacitiveSensor(30);
       values[17] = y3.capacitiveSensor(30);
       values[18] = y4.capacitiveSensor(30);
-      // values[19] = y5.capacitiveSensor(30);
+      values[19] = y5.capacitiveSensor(30);
 
-      p.Plot();
+      if (debugMode) {
+        isActiveDebug();
+        p.Plot();
+      }
     }
     reading = loopForever;
+  }
+}
+
+void isActiveDebug() {
+  matrix.setCursor(0,0);
+
+  for (int i = 0; i < 5; i++) {
+    matrix.print(i + 1);
+    matrix.setCursor(0, 10 * i + 10);
+  }
+
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 4; j++) {
+      int c = PURPLE;
+      if (j == 0) {
+        c = RED;
+      } else if (j == 1) {
+        c = GREEN;
+      } else if (j == 2) {
+        c = BLUE;
+      } else if (j == 3) {
+        c = YELLOW;
+      }
+      if (values[j * 5 + i] > threshold){
+        matrix.fillRect(10 + 8 * j, 0 + 10 * i, 5, 5, c);
+      } else {
+        matrix.fillRect(10 + 8 * j, 0 + 10 * i, 5, 5, PURPLE);
+      }
+    }
   }
 }
 
