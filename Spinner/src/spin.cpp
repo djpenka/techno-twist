@@ -5,6 +5,7 @@
 #include <DFRobot_RGBMatrix.h>
 #include <Wire.h>
 #include <math.h>
+#include <Plotter.h>
 #define OE    9
 #define LAT   10
 #define CLK   11
@@ -49,7 +50,7 @@ char *REDS = "RED";
 const float RSQ = sq(32.5);
 const float PI2 = PI/2;
 const float START_THETA = 0;
-const float THETA_ACC = -1 * PI / 32;
+const float THETA_ACC = -1 * PI / 64;
 
 // Sensors
 char OUT[] = {52, 53, 50, 51, 22};
@@ -60,32 +61,34 @@ char YIN[] = {46, 42, 38, 34, 30};
 
 
 
-//CapacitiveSensor r1 = CapacitiveSensor(OUT[0], RIN[0]); 
-//CapacitiveSensor r2 = CapacitiveSensor(OUT[1], RIN[1]); 
-//CapacitiveSensor r3 = CapacitiveSensor(OUT[2], RIN[2]); 
-//CapacitiveSensor r4 = CapacitiveSensor(OUT[3], RIN[3]); 
-//CapacitiveSensor r5 = CapacitiveSensor(OUT[4], RIN[4]); 
+CapacitiveSensor r1 = CapacitiveSensor(OUT[0], RIN[0]); 
+CapacitiveSensor r2 = CapacitiveSensor(OUT[1], RIN[1]); 
+CapacitiveSensor r3 = CapacitiveSensor(OUT[2], RIN[2]); 
+CapacitiveSensor r4 = CapacitiveSensor(OUT[3], RIN[3]); 
+CapacitiveSensor r5 = CapacitiveSensor(OUT[4], RIN[4]); 
 //
-//CapacitiveSensor g1 = CapacitiveSensor(OUT[0], GIN[0]);
-//CapacitiveSensor g2 = CapacitiveSensor(OUT[1], GIN[1]);
-//CapacitiveSensor g3 = CapacitiveSensor(OUT[2], GIN[2]);
-//CapacitiveSensor g4 = CapacitiveSensor(OUT[3], GIN[3]);
-//CapacitiveSensor g5 = CapacitiveSensor(OUT[4], GIN[4]); 
+CapacitiveSensor g1 = CapacitiveSensor(OUT[0], GIN[0]);
+CapacitiveSensor g2 = CapacitiveSensor(OUT[1], GIN[1]);
+CapacitiveSensor g3 = CapacitiveSensor(OUT[2], GIN[2]);
+CapacitiveSensor g4 = CapacitiveSensor(OUT[3], GIN[3]);
+CapacitiveSensor g5 = CapacitiveSensor(OUT[4], GIN[4]); 
 //
-//CapacitiveSensor b1 = CapacitiveSensor(OUT[0], BBIN[0]);
-//CapacitiveSensor b2 = CapacitiveSensor(OUT[1], BBIN[1]);
-//CapacitiveSensor b3 = CapacitiveSensor(OUT[2], BBIN[2]);
-//CapacitiveSensor b4 = CapacitiveSensor(OUT[3], BBIN[3]);
-//CapacitiveSensor b5 = CapacitiveSensor(OUT[4], BBIN[4]); 
+CapacitiveSensor b1 = CapacitiveSensor(OUT[0], BBIN[0]);
+CapacitiveSensor b2 = CapacitiveSensor(OUT[1], BBIN[1]);
+CapacitiveSensor b3 = CapacitiveSensor(OUT[2], BBIN[2]);
+CapacitiveSensor b4 = CapacitiveSensor(OUT[3], BBIN[3]);
+CapacitiveSensor b5 = CapacitiveSensor(OUT[4], BBIN[4]); 
 //
-//CapacitiveSensor y1 = CapacitiveSensor(OUT[0], YIN[0]);
-//CapacitiveSensor y2 = CapacitiveSensor(OUT[1], YIN[1]);
-//CapacitiveSensor y3 = CapacitiveSensor(OUT[2], YIN[2]);
-//CapacitiveSensor y4 = CapacitiveSensor(OUT[3], YIN[3]);
-//CapacitiveSensor y5 = CapacitiveSensor(OUT[4], YIN[4]); 
+CapacitiveSensor y1 = CapacitiveSensor(OUT[0], YIN[0]);
+CapacitiveSensor y2 = CapacitiveSensor(OUT[1], YIN[1]);
+CapacitiveSensor y3 = CapacitiveSensor(OUT[2], YIN[2]);
+CapacitiveSensor y4 = CapacitiveSensor(OUT[3], YIN[3]);
+CapacitiveSensor y5 = CapacitiveSensor(OUT[4], YIN[4]); 
 
 const int NUM_SENSORS = 20;
 long values[NUM_SENSORS];
+Plotter p;
+
 
 //DEBUG
 char diagnostics = 0;
@@ -99,22 +102,43 @@ void spinSpinner();
 int getBackgroundPixel(int i, int j, char inCircle);
 void addMaybe(int x, int y);
 void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color);
+void sensorOut(char loopForever);
 
 void setup() {
-  Serial.begin(9600);
+  // p.Begin();
+  // p.AddTimeGraph("Test", 100, 
+  //                "R1", values[0], 
+  //                "R2", values[1], 
+  //                "R3", values[2],
+  //                "R4", values[3],
+  //                "G1", values[5],
+  //                "G2", values[6],
+  //                "G3", values[7],
+  //                "G4", values[8], 
+  //                "B1", values[10],
+  //                "B2", values[11],
+  //                "B3", values[12],
+  //                "B4", values[13], 
+  //                "Y1", values[15],
+  //                "Y2", values[16],
+  //                "Y3", values[17],
+  //                "Y4", values[18]);
 //  setPins();
 //  if (diagnostics) {
 //    sensorOut(1);
 //  }
   matrix.begin();
   matrix.setTextColor(WHITE);
+  sensorOut(0);
+  // matrix.drawCircle(32, 32, 5, RED);
   redrawAll();
   delay(1000);
 }
 
 void loop() {
   spinSpinner();
-  delay(1000);
+  sensorOut(0);
+  delay(100);
 }
 
 //void setPins() {
@@ -131,51 +155,47 @@ void loop() {
 //  }
 //}
 //
-//void sensorOut(char constant) {
-//  int i = 0, o, c;
-//  char reading = 1;
-//  while(reading) {
-////    for (o = 4; o < 5; o++) {
-////      CapacitiveSensor rc = CapacitiveSensor(OUT[o], RIN[o]);
-////      CapacitiveSensor gc = CapacitiveSensor(OUT[o], GIN[o]);
-////      CapacitiveSensor bc = CapacitiveSensor(OUT[o], BBIN[o]);
-////      CapacitiveSensor yc = CapacitiveSensor(OUT[o], YIN[o]);
-////      values[4 * o] = rc.capacitiveSensor(30);
-////      values[4 * o + 1] = gc.capacitiveSensor(30);
-////      values[4 * o + 2] = bc.capacitiveSensor(30);
-////      values[4 * o + 3] = yc.capacitiveSensor(30);
-////    }
-//      values[0] = r1.capacitiveSensor(30);
-//      values[1] = r2.capacitiveSensor(30);
-//      values[2] = r3.capacitiveSensor(30);
-//      values[3] = r4.capacitiveSensor(30);
-//      values[4] = r5.capacitiveSensor(30);
-//
-//      values[5] = g1.capacitiveSensor(30);
-//      values[6] = g2.capacitiveSensor(30);
-//      values[7] = g3.capacitiveSensor(30);
-//      values[8] = g4.capacitiveSensor(30);
-//      values[9] = g5.capacitiveSensor(30);
-//
-//      values[10] = b1.capacitiveSensor(30);
-//      values[11] = b2.capacitiveSensor(30);
-//      values[12] = b3.capacitiveSensor(30);
-//      values[13] = b4.capacitiveSensor(30);
-//      values[14] = b5.capacitiveSensor(30);
-//
-//      values[15] = y1.capacitiveSensor(30);
-//      values[16] = y2.capacitiveSensor(30);
-//      values[17] = y3.capacitiveSensor(30);
-//      values[18] = y4.capacitiveSensor(30);
-//      values[19] = y5.capacitiveSensor(30);
-//    for (i = 0; i < 20; i++) {
-//      Serial.print(values[i]);
-//      Serial.print(" ");
-//    }
-//    Serial.println();
-//    reading = constant;
-//  }
-//}
+void sensorOut(char loopForever) {
+  char reading = 1;
+  while(reading) {
+    // values[0] = r1.capacitiveSensor(30);
+    // matrix.drawCircle(32, 32, 7, WHITE);
+    // values[5] = g1.capacitiveSensor(30);
+    // matrix.drawCircle(32, 32, 9, WHITE);
+    // values[10] = b1.capacitiveSensor(30);
+    // matrix.drawCircle(32, 32, 11, WHITE);
+    // values[15] = y1.capacitiveSensor(30);
+    // matrix.drawCircle(32, 32, 13, WHITE);
+    for (int i = 0; i < 10; i++) {
+      values[0] = r1.capacitiveSensor(30);
+      values[1] = r2.capacitiveSensor(30);
+      values[2] = r3.capacitiveSensor(30);
+      values[3] = r4.capacitiveSensor(30);
+      // values[4] = r5.capacitiveSensor(30);
+
+      values[5] = g1.capacitiveSensor(30);
+      values[6] = g2.capacitiveSensor(30);
+      values[7] = g3.capacitiveSensor(30);
+      values[8] = g4.capacitiveSensor(30);
+      // values[9] = g5.capacitiveSensor(30);
+
+      values[10] = b1.capacitiveSensor(30);
+      values[11] = b2.capacitiveSensor(30);
+      values[12] = b3.capacitiveSensor(30);
+      values[13] = b4.capacitiveSensor(30);
+      // values[14] = b5.capacitiveSensor(30);
+
+      values[15] = y1.capacitiveSensor(30);
+      values[16] = y2.capacitiveSensor(30);
+      values[17] = y3.capacitiveSensor(30);
+      values[18] = y4.capacitiveSensor(30);
+      // values[19] = y5.capacitiveSensor(30);
+
+      p.Plot();
+    }
+    reading = loopForever;
+  }
+}
 
 void displayResult(int option) {
   char *body;
@@ -237,7 +257,7 @@ void spinSpinner() {
   int endX, endY, result, finalT, t;
 
   result = random(1, 17);
-  finalTheta = result * PI / 8 + 4 * PI;
+  finalTheta = result * PI / 8 + 4 * PI - PI / 16;
   fTCopy = finalTheta;
   v = 0;
   finalT = 0;
