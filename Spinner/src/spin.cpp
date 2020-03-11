@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <math.h>
 #include <Plotter.h>
+#include "spinner.h"
 #define OE    9
 #define LAT   10
 #define CLK   11
@@ -50,7 +51,7 @@ char *REDS = "RED";
 const float RSQ = sq(32.5);
 const float PI2 = PI/2;
 const float START_THETA = 0;
-const float THETA_ACC = -1 * PI / 64;
+const float THETA_ACC = -1 * PI / 100;
 
 // Sensors
 char OUT[] = {52, 53, 50, 51, 6}; // 22 -> 6 52 -> 23
@@ -87,11 +88,11 @@ CapacitiveSensor y5 = CapacitiveSensor(OUT[4], YIN[4]);
 
 const int NUM_SENSORS = 20;
 long values[NUM_SENSORS];
-Plotter p;
+// Plotter p;
 
 
 //DEBUG
-char debugMode = 1;
+char debugMode = 0;
 
 // Declaring Functions
 
@@ -106,31 +107,33 @@ void sensorOut(char loopForever);
 void isActiveDebug();
 
 void setup() {
+  Serial.begin(9600);
+  while(!Serial);
   matrix.begin();
   matrix.setTextColor(WHITE);
   if (debugMode) {
-    p.Begin();
-    p.AddTimeGraph("Test", 100, 
+    // p.Begin();
+    // p.AddTimeGraph("Test", 100, 
     //                "R1", values[0], 
     //                "R2", values[1], 
     //                "R3", values[2],
                   //  "R4", values[3],
-                      "R5", values[4],
+                      // "R5", values[4],
     //                "G1", values[5],
     //                "G2", values[6],
     //                "G3", values[7],
                   //  "G4", values[8], 
-                      "G5", values[9],
+                      // "G5", values[9],
     //                "B1", values[10],
     //                "B2", values[11],
     //                "B3", values[12],
                   //  "B4", values[13], 
-                      "B5", values[14],
+                      // "B5", values[14],
                   //  "Y1", values[15],
                   //  "Y2", values[16],
                   //  "Y3", values[17],
                   //  "Y4", values[18],
-                      "Y5", values[19]);
+                      // "Y5", values[19]);
     sensorOut(1);
   }
   redrawAll();
@@ -139,7 +142,9 @@ void setup() {
 
 void loop() {
   spinSpinner();
-  sensorOut(0);
+  Serial.println("SpinSpinner RETURN");
+  // sensorOut(0);
+  Serial.println("SENSOR OUT COMPLETE");
   delay(100);
 }
 
@@ -195,7 +200,7 @@ void sensorOut(char loopForever) {
 
       if (debugMode) {
         isActiveDebug();
-        p.Plot();
+        // p.Plot();
       }
     }
     reading = loopForever;
@@ -276,13 +281,20 @@ void drawSpinnerBack() {
 }
 
 void redrawAll() {
-  int color;
-  for (int i = 0; i < WIDTH; i++) {
-    for (int j = 0; j < HEIGHT; j++) {
-      color = getBackgroundPixel(i,j, 0);
-      matrix.drawPixel(i, j, color);
-    }
+  // int color;
+  // for (int i = 0; i < WIDTH; i++) {
+  //   for (int j = 0; j < HEIGHT; j++) {
+  //     color = getBackgroundPixel(i,j, 0);
+  //     matrix.drawPixel(i, j, color);
+  //   }
+  // }
+  Serial.println("REDRAW ALL!");
+  uint8_t *backBuffer = matrix.backBuffer();
+  for (int i = 0; i < 6144; i++) {
+    backBuffer[i] = pgm_read_byte(spinner + i);
   }
+  matrix.swapBuffers(false);
+  Serial.println("REDRAW FINISH!");
 }
 
 void spinSpinner() {
@@ -291,7 +303,7 @@ void spinSpinner() {
   int endX, endY, result, finalT, t;
 
   result = random(1, 17);
-  finalTheta = result * PI / 8 + 4 * PI - PI / 16;
+  finalTheta = result * PI / 8 + 2 * PI - PI / 16;
   fTCopy = finalTheta;
   v = 0;
   finalT = 0;
@@ -303,7 +315,7 @@ void spinSpinner() {
   }
   theta = fTCopy;
   v *= -1;
-    
+  Serial.print("NEW SPIN!");
   for (t = 0; t < finalT; t++) {
     drawSpinnerBack();
     endX = radius * cos(theta) + 31.5;
@@ -315,6 +327,7 @@ void spinSpinner() {
     delay(50);
     theta += v;
     v += THETA_ACC;
+    Serial.println("Spin!");
   }
   delay(1000);
   displayResult(result);
