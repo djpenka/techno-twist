@@ -83,9 +83,9 @@ char debugMode = 0;
 
 // Declaring Functions
 void(* funckyFail)(void) = 0;
-void displayResult(int option);
+bool displayResult(int option);
 void drawBackground();
-void spinSpinner();
+int  spinSpinner();
 int  getBackgroundPixel(int i, int j, char inCircle);
 void sensorOut(char loopForever);
 void debugRectangles();
@@ -109,7 +109,11 @@ void setup() {
 
 void loop() {
   sensorOut(0);
-  spinSpinner();
+  int result = spinSpinner();
+  bool fail = displayResult(result);
+  if (fail) {
+    funckyFail();
+  }
   delay(100);
 }
 
@@ -224,10 +228,11 @@ char colorIsPressed(char color) {
   return 0;
 }
 
-void displayResult(int option) {
+bool displayResult(int option) {
   // Option is int between 1 and 16
   String body;
   String color;
+  bool fail = false;
   int textColor;
   int cNum = (option - 1) % 4;
 
@@ -283,12 +288,21 @@ void displayResult(int option) {
     matrix.print(F("PASS"));
     matrix.setTextColor(WHITE);
   } else {
-    matrix.print(F("FAIL"));
+    matrix.fillScreen(BLACK);
+    matrix.drawRect(0, 0, 64, 64, WHITE);
+    matrix.drawRect(1, 1, 62, 62, WHITE);
+    matrix.setTextSize(8);
+    matrix.setTextColor(RED);
+    matrix.setCursor(12, -4);
+    matrix.print(F("x"));
+    delay(3000);
+    fail = true;
   }
 
   matrix.setTextSize(1);
 
   delay(2000);
+  return fail;
 }
 
 void printTimer(int start, int color) {
@@ -323,7 +337,7 @@ void drawBackground() {
   }
 }
 
-void spinSpinner() {
+int spinSpinner() {
   double v, finalTheta, fTCopy, theta;
   const double radius = 25;
   int endX, endY, result, finalT, t;
@@ -354,9 +368,8 @@ void spinSpinner() {
     v += THETA_ACC;
   }
   delay(1000);
-  displayResult(result);
-  
-  drawBackground();
+
+  return result;
 }
 
 int getBackgroundPixel(int i, int j, char inCircle) {
