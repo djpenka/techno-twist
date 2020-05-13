@@ -10,7 +10,7 @@ Picture and Video:
 - [Spinner with prototype board after MakeOHI/O](https://www.dropbox.com/s/8tedzikfc6sycvd/IMG_1080.MOV?dl=0)
 
 Current features:
-- [LED display with random spinner]
+- LED display with random spinner
 - Detection of multiple hands and feet on the mat
 
 Upcoming features (put on hold by COVID-19):
